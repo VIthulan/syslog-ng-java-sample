@@ -1,0 +1,10 @@
+<component name="libraryTable">
+  <library name="Gradle: :syslog-ng-core:">
+    <CLASSES>
+      <root url="file://$PROJECT_DIR$/Could not find :syslog-ng-core:." />
+      <root url="jar:///usr/local/lib/syslog-ng/java-modules/syslog-ng-core.jar!/" />
+    </CLASSES>
+    <JAVADOC />
+    <SOURCES />
+  </library>
+</component>
