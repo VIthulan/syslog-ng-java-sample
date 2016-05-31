@@ -1,5 +1,7 @@
 import org.syslog_ng.InternalMessageSender;
 import org.syslog_ng.TextLogDestination;
+import org.syslog_ng.options.Option;
+import org.syslog_ng.options.StringOption;
 
 import java.io.BufferedWriter;
 import java.io.File;
@@ -8,9 +10,8 @@ import java.io.IOException;
 
 public class FileDestination extends TextLogDestination {
 
-    private String filename;
-    private String filepath;
-    private BufferedWriter bufferedWriter;
+    private String fullPath;
+    private BufferedWriter bufferedWriter = null;
 
     public FileDestination (long arg0){
         super(arg0);
@@ -31,42 +32,7 @@ public class FileDestination extends TextLogDestination {
 
     @Override
     protected boolean open() {
-        return true;
-    }
-
-    @Override
-    protected void close() {
-        try {
-            this.bufferedWriter.close();
-        } catch (IOException e) {
-            InternalMessageSender.error(e.getMessage());
-        }
-    }
-
-    @Override
-    protected boolean isOpened() {
-        return true;
-    }
-
-    @Override
-    protected String getNameByUniqOptions() {
-        return "JavaDestToFile";
-    }
-
-    @Override
-    protected boolean init() {
-        this.filename = getOption("filename");
-        this.filepath = getOption("filepath");
-
-        if (filename == null) {
-            InternalMessageSender.error("File name is a required option for destination");
-            return false;
-        }
-        if (filepath == null) {
-            InternalMessageSender.error("File path is a required option for destination");
-            return false;
-        }
-        File file = new File(filepath+filename);
+        File file = new File(fullPath);
         if(!file.exists()){
             try {
                 file.createNewFile();
@@ -84,8 +50,54 @@ public class FileDestination extends TextLogDestination {
                 return false;
             }
         }
-        InternalMessageSender.error("Something went wrong at "+filepath+filename);
         return false;
+    }
+
+    @Override
+    protected void close() {
+        try {
+            this.bufferedWriter.close();
+        } catch (IOException e) {
+            InternalMessageSender.error(e.getMessage());
+        }
+    }
+
+    @Override
+    protected boolean isOpened() {
+        if (bufferedWriter != null) {
+            return true;
+        }
+        return false;
+    }
+
+    @Override
+    protected String getNameByUniqOptions() {
+        return "FileDestination("+fullPath+")";
+    }
+
+    @Override
+    protected boolean init() {
+        String filename;
+        String filepath;
+        Option fileNameOption , filePathOption;
+        fileNameOption = new StringOption(this,"filename");
+        filePathOption = new StringOption(this,"filepath");
+
+        if(fileNameOption.getValue() != null) {
+            filename = getOption("filename");
+        } else {
+            InternalMessageSender.error("File name is a required option for destination");
+            return false;
+        }
+        if(filePathOption.getValue() != null) {
+            filepath = getOption("filepath");
+        } else {
+            InternalMessageSender.error("File path is a required option for destination");
+            return false;
+        }
+
+        fullPath = filepath + filename;
+        return true;
     }
 
     @Override
