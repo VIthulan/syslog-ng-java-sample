@@ -1,7 +1,6 @@
 import org.syslog_ng.InternalMessageSender;
 import org.syslog_ng.TextLogDestination;
-import org.syslog_ng.options.Option;
-import org.syslog_ng.options.StringOption;
+import org.syslog_ng.options.*;
 
 import java.io.BufferedWriter;
 import java.io.File;
@@ -79,23 +78,18 @@ public class FileDestination extends TextLogDestination {
     protected boolean init() {
         String filename;
         String filepath;
-        Option fileNameOption , filePathOption;
-        fileNameOption = new StringOption(this,"filename");
-        filePathOption = new StringOption(this,"filepath");
-
-        if(fileNameOption.getValue() != null) {
-            filename = getOption("filename");
-        } else {
-            InternalMessageSender.error("File name is a required option for destination");
-            return false;
-        }
-        if(filePathOption.getValue() != null) {
-            filepath = getOption("filepath");
-        } else {
-            InternalMessageSender.error("File path is a required option for destination");
+        Options requiredOptions = new Options();
+        requiredOptions.put (new RequiredOptionDecorator(new StringOption(this,"filename")));
+        requiredOptions.put (new RequiredOptionDecorator(new StringOption(this,"filepath")));
+        try {
+            requiredOptions.validate();
+        } catch (InvalidOptionException e) {
+            InternalMessageSender.error("Some options are missing");
             return false;
         }
 
+        filename = getOption("filename");
+        filepath = getOption("filepath");
         fullPath = filepath + filename;
         return true;
     }
